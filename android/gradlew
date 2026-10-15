@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+# Minimal Linux CI wrapper for Klencod IDE. Downloads Gradle once into the user's cache.
+set -eu
+GRADLE_VERSION="8.14.3"
+CACHE_ROOT="${GRADLE_USER_HOME:-$HOME/.gradle}/manual-gradle"
+GRADLE_HOME="$CACHE_ROOT/gradle-$GRADLE_VERSION"
+if [ ! -x "$GRADLE_HOME/bin/gradle" ]; then
+  mkdir -p "$CACHE_ROOT"
+  ZIP_FILE="$CACHE_ROOT/gradle-$GRADLE_VERSION-bin.zip"
+  if [ ! -s "$ZIP_FILE" ]; then
+    curl -fL --retry 3 --connect-timeout 20 \
+      "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip" \
+      -o "$ZIP_FILE"
+  fi
+  unzip -q -o "$ZIP_FILE" -d "$CACHE_ROOT"
+  rm -f "$ZIP_FILE"
+fi
+exec "$GRADLE_HOME/bin/gradle" "$@"
